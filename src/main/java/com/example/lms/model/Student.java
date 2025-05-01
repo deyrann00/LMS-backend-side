@@ -1,14 +1,12 @@
 package com.example.lms.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
 @Entity
 public class Student {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,8 +18,16 @@ public class Student {
     @JoinTable(
             name = "student_enrolled_courses",
             joinColumns = @JoinColumn(name = "student_id"),
-            inverseJoinColumns = @JoinColumn(name = "course_id")
+            inverseJoinColumns = @JoinColumn(name = "enrolled_courses_id")
     )
     private Set<Course> enrolledCourses = new HashSet<>();
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public Set<Course> getEnrolledCourses() { return enrolledCourses; }
+    public void setEnrolledCourses(Set<Course> enrolledCourses) { this.enrolledCourses = enrolledCourses; }
 }

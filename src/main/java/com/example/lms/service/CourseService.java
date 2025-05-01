@@ -65,36 +65,36 @@ public class CourseService {
     }
 
     public void enrollStudent(Long userId, Long courseId) {
-        // Fetch user
+        // Step 1: Fetch user by ID (primary ID from users table)
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Create student if not already exists
-        Student student = studentRepository.findByUserId(userId).orElseGet(() -> {
-            Student newStudent = new Student();
-            newStudent.setUser(user);
-            Student savedStudent = studentRepository.save(newStudent);
+        // Step 2: Find student linked to user OR create new one
+        Student student = studentRepository.findByUserId(user.getId()).orElse(null);
+        if (student == null) {
+            student = new Student();
+            student.setUser(user);
+            student = studentRepository.save(student);
 
-            // Promote user to STUDENT if not already
+            // Promote user to STUDENT role
             if (!"STUDENT".equalsIgnoreCase(user.getRole())) {
                 user.setRole("STUDENT");
                 userService.saveUser(user);
             }
 
-            System.out.println("Created student and promoted role for user ID: " + userId);
-            return savedStudent;
-        });
+            System.out.println("New student created and promoted for userId = " + userId);
+        }
 
-        // Fetch course
+        // Step 3: Fetch course
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Avoid duplicate enrollment
+        // Step 4: Enroll only if not already enrolled
         if (!student.getEnrolledCourses().contains(course)) {
             student.getEnrolledCourses().add(course);
             studentRepository.save(student);
         } else {
-            System.out.println("User already enrolled in course ID: " + courseId);
+            System.out.println("User is already enrolled in courseId = " + courseId);
         }
     }
 }
