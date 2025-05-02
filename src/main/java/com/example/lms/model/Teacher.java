@@ -3,6 +3,8 @@ package com.example.lms.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 public class Teacher {
 
@@ -11,18 +13,31 @@ public class Teacher {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy = "teacher")
-    private List<Course> courses;
+    @JsonManagedReference("teacher-course")
+    private List<Course> teachingCourses;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public User getUser() {
+        return user;
+    }
 
-    public List<Course> getCourses() { return courses; }
-    public void setCourses(List<Course> courses) { this.courses = courses; }
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Course> getTeachingCourses() {
+        return teachingCourses;
+    }
+
+    public void setTeachingCourses(List<Course> teachingCourses) {
+        this.teachingCourses = teachingCourses;
+    }
 }

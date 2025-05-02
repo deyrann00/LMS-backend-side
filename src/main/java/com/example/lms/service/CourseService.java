@@ -54,14 +54,26 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    public void unsubscribeStudent(Long studentId, Long courseId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+    public void unsubscribeStudent(Long userId, Long courseId) {
+        // Step 1: Fetch user
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Step 2: Fetch student linked to the user
+        Student student = studentRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Student profile not found"));
+
+        // Step 3: Fetch course
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        student.getEnrolledCourses().remove(course);
-        studentRepository.save(student);
+        // Step 4: Unenroll only if currently enrolled
+        if (student.getEnrolledCourses().contains(course)) {
+            student.getEnrolledCourses().remove(course);
+            studentRepository.save(student);
+        } else {
+            System.out.println("User is not enrolled in courseId = " + courseId);
+        }
     }
 
     public void enrollStudent(Long userId, Long courseId) {

@@ -1,8 +1,12 @@
 package com.example.lms.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -17,11 +21,16 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")
+    @JsonBackReference("teacher-course")
     private Teacher teacher;
 
     @ManyToMany(mappedBy = "enrolledCourses")
     @JsonBackReference
     private Set<Student> students = new HashSet<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Module> modules = new ArrayList<>();
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
