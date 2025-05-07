@@ -20,6 +20,11 @@ public class CourseModule {
     @JsonBackReference  // Correct direction for the child -> parent reference
     private Course course;
 
+    // New field to store video URL
+    private String videoUrl;
+
+    private String filePath;
+
     // Getters and Setters
 
     public Long getId() {
@@ -52,5 +57,21 @@ public class CourseModule {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 }
