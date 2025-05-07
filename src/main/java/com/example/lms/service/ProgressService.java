@@ -1,9 +1,9 @@
 package com.example.lms.service;
 
 import com.example.lms.model.Progress;
-import com.example.lms.model.Module;
+import com.example.lms.model.CourseModule;
 import com.example.lms.repository.CourseRepository;
-import com.example.lms.repository.ModuleRepository;
+import com.example.lms.repository.CourseModuleRepository;
 import com.example.lms.repository.ProgressRepository;
 import com.example.lms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class ProgressService {
     private CourseRepository courseRepository;
 
     @Autowired
-    private ModuleRepository moduleRepository;
+    private CourseModuleRepository courseModuleRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -39,11 +39,11 @@ public class ProgressService {
             Progress newProgress = new Progress();
             newProgress.setUser(userRepository.findById(userId).get());
             newProgress.setCourse(courseRepository.findById(courseId).get());
-            newProgress.setCompletedModules(new ArrayList<>()); // initialize the completed modules list
+            newProgress.setCompletedCourseModules(new ArrayList<>()); // initialize the completed modules list
 
             // Explicitly fetch the modules from the database (assuming they are lazy-loaded)
-            List<Module> modules = moduleRepository.findByCourseId(courseId);
-            newProgress.setTotalModules(modules.size());
+            List<CourseModule> courseModules = courseModuleRepository.findByCourseId(courseId);
+            newProgress.setTotalModules(courseModules.size());
             newProgress.setPercentageCompleted(0.0);
             newProgress.setLastUpdated(LocalDateTime.now());
 
@@ -51,11 +51,11 @@ public class ProgressService {
         });
 
         // Add the completed module to the progress
-        List<Long> completedModules = progress.getCompletedModules();
+        List<Long> completedModules = progress.getCompletedCourseModules();
         if (!completedModules.contains(completedModuleId)) {
             completedModules.add(completedModuleId);
         }
-        progress.setCompletedModules(completedModules);
+        progress.setCompletedCourseModules(completedModules);
 
         // Recalculate percentage of completed modules
         double percentageCompleted = (double) completedModules.size() / progress.getTotalModules() * 100;

@@ -91,4 +91,68 @@ public class UserController {
 
         return ResponseEntity.ok(user);
     }
+
+    // New endpoint to fetch current user
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("User-Id") Long userId) {
+        Optional<User> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+        return ResponseEntity.ok(userOpt.get());
+    }
+
+    // New endpoint to update user name
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUserName(@RequestHeader("User-Id") Long userId, @RequestBody Map<String, String> updateData) {
+        Optional<User> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        User user = userOpt.get();
+        String newName = updateData.get("name");
+        if (newName == null || newName.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Name cannot be empty");
+        }
+
+        user.setName(newName);
+        userService.saveUser(user);
+        return ResponseEntity.ok(user);
+    }
+
+    // New endpoint to change password
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestHeader("User-Id") Long userId, @RequestBody Map<String, String> passwordData) {
+        Optional<User> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        String currentPassword = passwordData.get("currentPassword");
+        String newPassword = passwordData.get("newPassword");
+        String confirmPassword = passwordData.get("confirmPassword");
+
+        if (currentPassword == null || newPassword == null || confirmPassword == null) {
+            return ResponseEntity.badRequest().body("All password fields are required");
+        }
+
+        User user = userOpt.get();
+        String hashedInputPassword = passwordEncoder.hashPassword(currentPassword);
+        if (!user.getPassword().equals(hashedInputPassword)) {
+            return ResponseEntity.status(401).body("Current password is incorrect");
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            return ResponseEntity.badRequest().body("New password and confirmation do not match");
+        }
+
+        if (newPassword.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("New password cannot be empty");
+        }
+
+        user.setPassword(passwordEncoder.hashPassword(newPassword));
+        userService.saveUser(user);
+        return ResponseEntity.ok("Password changed successfully");
+    }
 }

@@ -19,4 +19,4 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
     ports:
-      - "1123:5432"  # Windows наружный порт
+      - "1123:5432"

@@ -19,7 +19,7 @@ public class Progress {
     private Course course;
 
     @ElementCollection
-    private List<Long> completedModules; // Stores IDs of completed modules
+    private List<Long> completedCourseModules; // Stores IDs of completed modules
 
     private int totalModules; // Total number of modules in the course
 
@@ -53,12 +53,12 @@ public class Progress {
         this.course = course;
     }
 
-    public List<Long> getCompletedModules() {
-        return completedModules;
+    public List<Long> getCompletedCourseModules() {
+        return completedCourseModules;
     }
 
-    public void setCompletedModules(List<Long> completedModules) {
-        this.completedModules = completedModules;
+    public void setCompletedCourseModules(List<Long> completedCourseModules) {
+        this.completedCourseModules = completedCourseModules;
     }
 
     public int getTotalModules() {

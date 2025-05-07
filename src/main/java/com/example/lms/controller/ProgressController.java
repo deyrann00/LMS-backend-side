@@ -5,6 +5,7 @@ import com.example.lms.repository.CourseRepository;
 import com.example.lms.repository.UserRepository;
 import com.example.lms.service.ProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class ProgressController {
     @GetMapping("/{userId}/course/{courseId}")
     public ResponseEntity<Progress> getProgress(@PathVariable Long userId, @PathVariable Long courseId) {
         Progress progress = progressService.getProgress(userId, courseId);
-        return ResponseEntity.ok(progress);
+        return progress != null ? ResponseEntity.ok(progress) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     // Endpoint to update the progress when a module is completed
