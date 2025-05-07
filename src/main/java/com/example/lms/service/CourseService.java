@@ -2,10 +2,13 @@ package com.example.lms.service;
 
 import com.example.lms.model.Course;
 import com.example.lms.model.Student;
+import com.example.lms.model.Teacher;
 import com.example.lms.model.User;
 import com.example.lms.repository.CourseRepository;
 import com.example.lms.repository.StudentRepository;
+import com.example.lms.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +22,9 @@ public class CourseService {
 
     @Autowired
     private StudentRepository studentRepository;
+
+    @Autowired
+    private TeacherRepository teacherRepository;
 
     @Autowired
     private UserService userService;
@@ -107,6 +113,22 @@ public class CourseService {
             studentRepository.save(student);
         } else {
             System.out.println("User is already enrolled in courseId = " + courseId);
+        }
+    }
+
+    // Save or Update course logic
+    public ResponseEntity<Course> saveOrUpdateCourse(Course course) {
+        Optional<Course> existingCourse = courseRepository.findById(course.getId());
+        if (existingCourse.isPresent()) {
+            // Update the existing course
+            Course updatedCourse = existingCourse.get();
+            updatedCourse.setTitle(course.getTitle());
+            updatedCourse.setDescription(course.getDescription());
+            updatedCourse.setTeacher(course.getTeacher());  // Update teacher
+            return ResponseEntity.ok(courseRepository.save(updatedCourse));  // Save updated course and return response
+        } else {
+            // If course doesn't exist, create a new one
+            return ResponseEntity.ok(courseRepository.save(course));  // Save new course and return response
         }
     }
 }

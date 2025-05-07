@@ -44,4 +44,18 @@ public class UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+
+    // Ban a user by setting their role to "BANNED"
+    public User banUser(Long userId) {
+        // Find the user by ID
+        User user = userRepository.findById(userId).orElse(null);
+
+        if (user != null && !user.getRole().equals("ADMIN")) {
+            // Update the user's status or role
+            user.setRole("BANNED"); // Or another status field like user.setStatus("BANNED");
+            return userRepository.save(user); // Save the updated user in the database
+        }
+
+        return null; // Return null if user is not found or if it's an admin
+    }
 }

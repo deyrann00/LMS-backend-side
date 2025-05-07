@@ -21,6 +21,26 @@ public class User {
     @JsonBackReference
     private Student student;
 
+    private String avatarUrl;
+
+    private boolean banned;  // Add this field to track if the user is banned
+
+    @Column(nullable = false)
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

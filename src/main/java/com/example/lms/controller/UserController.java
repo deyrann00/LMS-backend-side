@@ -7,13 +7,21 @@ import com.example.lms.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RequestMapping({"/api/users", "/api/auth"})
 public class UserController {
 
@@ -24,6 +32,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private static final String AVATAR_UPLOAD_DIR = "uploads/avatars";
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -154,5 +164,66 @@ public class UserController {
         user.setPassword(passwordEncoder.hashPassword(newPassword));
         userService.saveUser(user);
         return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @PutMapping("/update-avatar")
+    public ResponseEntity<?> updateAvatar(
+            @RequestHeader("User-Id") Long userId,
+            @RequestParam("avatar") MultipartFile avatarFile) {
+
+        System.out.println("Received User-Id: " + userId); // Log the User-Id to check if it is correctly passed
+
+        Optional<User> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOpt.get();
+
+        try {
+            // Check if file is empty
+            if (avatarFile.isEmpty()) {
+                return ResponseEntity.badRequest().body("No file uploaded");
+            }
+
+            // Validate file type (make sure it's an image)
+            if (!avatarFile.getContentType().startsWith("image/")) {
+                return ResponseEntity.badRequest().body("Only image files are allowed");
+            }
+
+            // Set up the path for avatar file storage
+            String avatarFileName = "avatar_" + userId + ".jpg";  // Use the user ID to create a unique file name
+            Path avatarPath = Paths.get(AVATAR_UPLOAD_DIR, avatarFileName);
+
+            // Ensure the directory exists
+            File avatarDirectory = avatarPath.getParent().toFile();
+            if (!avatarDirectory.exists()) {
+                avatarDirectory.mkdirs();  // Create the directory if it doesn't exist
+            }
+
+            // Copy the file to the server
+            Files.copy(avatarFile.getInputStream(), avatarPath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Save the avatar URL in the user's profile
+            // The path must be publicly accessible to frontend
+            user.setAvatarUrl("/uploads/avatars/" + avatarFileName);  // Ensure this path works for frontend
+            userService.saveUser(user);
+
+            return ResponseEntity.ok("Avatar updated successfully");
+        } catch (IOException e) {
+            // Log the error for debugging
+            System.err.println("Error updating avatar: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update avatar: " + e.getMessage());
+        }
+    }
+
+    // Ban a user by ID
+    @PutMapping("/{userId}/ban")
+    public void banUser(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setBanned(true);  // Mark the user as banned
+        userRepository.save(user);  // Save the updated user
     }
 }
