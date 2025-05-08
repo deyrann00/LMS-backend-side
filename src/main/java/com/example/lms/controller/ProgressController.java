@@ -19,12 +19,6 @@ public class ProgressController {
     @Autowired
     private ProgressService progressService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
     // Endpoint to get progress for a user and course
     @GetMapping("/{userId}/course/{courseId}")
     public ResponseEntity<Progress> getProgress(@PathVariable Long userId, @PathVariable Long courseId) {
