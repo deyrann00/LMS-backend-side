@@ -224,7 +224,7 @@ public class UserController {
             user.setAvatarUrl("/uploads/avatars/" + avatarFileName);  // Ensure this path works for frontend
             userService.saveUser(user);
 
-            return ResponseEntity.ok("Avatar updated successfully");
+            return ResponseEntity.ok(user);
         } catch (IOException e) {
             // Log the error for debugging
             System.err.println("Error updating avatar: " + e.getMessage());

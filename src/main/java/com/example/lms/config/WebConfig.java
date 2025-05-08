@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Ensure to replace this path with the correct absolute path to your 'uploads' folder
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:/Users/d1rannn/Documents/lms-full-backend/uploads/avatars/"); // Update this with the actual path
+        registry.addResourceHandler("/uploads/avatars/**")
+                .addResourceLocations("file:uploads/avatars/");
     }
 }
