@@ -1,5 +1,7 @@
 package com.example.lms.controller;
 
+import com.example.lms.dto.RegisterRequest;
+import com.example.lms.model.Teacher;
 import com.example.lms.model.User;
 import com.example.lms.repository.UserRepository;
 import com.example.lms.service.UserService;
@@ -27,6 +29,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private com.example.lms.repository.TeacherRepository teacherRepository;
 
     private final PasswordHasher passwordEncoder = new PasswordHasher();
 
@@ -61,24 +66,34 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        // Check if username or email already exists
-        if (userRepository.existsByUsername(user.getUsername())) {
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+        // 1. Check for duplicates
+        if (userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        // Encode (hash) the password before saving
-        user.setPassword(passwordEncoder.hashPassword(user.getPassword()));
+        // 2. Create and save User
+        User user = new User();
+        user.setName(request.getName());
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.hashPassword(request.getPassword()));
+        user.setRole(request.getRole());
 
-        // Save the user
         User savedUser = userRepository.save(user);
+
+        // 3. If role is TEACHER, also create Teacher entry
+        if ("TEACHER".equalsIgnoreCase(request.getRole())) {
+            Teacher teacher = new Teacher();
+            teacher.setUser(savedUser);
+            teacherRepository.save(teacher);
+        }
 
         return ResponseEntity.ok(savedUser);
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {

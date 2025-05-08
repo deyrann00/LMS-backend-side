@@ -41,7 +41,14 @@ public class CourseService {
     }
 
     public Course saveCourse(Course course) {
-        return courseRepository.save(course);
+        // Ensure the teacher is set with the correct teacher_id
+        Optional<Teacher> teacherOptional = teacherRepository.findById(course.getTeacher().getId());
+        if (teacherOptional.isPresent()) {
+            course.setTeacher(teacherOptional.get());
+            return courseRepository.save(course);
+        } else {
+            throw new RuntimeException("Teacher not found");
+        }
     }
 
     public Course updateCourse(Long id, Course courseData) {
@@ -54,10 +61,6 @@ public class CourseService {
         } else {
             return null;
         }
-    }
-
-    public void deleteCourse(Long id) {
-        courseRepository.deleteById(id);
     }
 
     public void unsubscribeStudent(Long userId, Long courseId) {
@@ -116,19 +119,27 @@ public class CourseService {
         }
     }
 
-    // Save or Update course logic
-    public ResponseEntity<Course> saveOrUpdateCourse(Course course) {
-        Optional<Course> existingCourse = courseRepository.findById(course.getId());
-        if (existingCourse.isPresent()) {
-            // Update the existing course
-            Course updatedCourse = existingCourse.get();
-            updatedCourse.setTitle(course.getTitle());
-            updatedCourse.setDescription(course.getDescription());
-            updatedCourse.setTeacher(course.getTeacher());  // Update teacher
-            return ResponseEntity.ok(courseRepository.save(updatedCourse));  // Save updated course and return response
-        } else {
-            // If course doesn't exist, create a new one
-            return ResponseEntity.ok(courseRepository.save(course));  // Save new course and return response
+    public boolean deleteCourse(Long id) {
+        Optional<Course> course = courseRepository.findById(id);
+        if (course.isPresent()) {
+            Course existingCourse = course.get();
+
+            // Очистка записей студентов на этот курс
+            if (!existingCourse.getStudents().isEmpty()) {
+                for (Student student : existingCourse.getStudents()) {
+                    student.getEnrolledCourses().remove(existingCourse);
+                }
+                existingCourse.getStudents().clear();  // очистка с другой стороны
+            }
+
+            // Сохраняем обновлённые связи
+            courseRepository.save(existingCourse);
+
+            // Теперь можно безопасно удалить курс
+            courseRepository.deleteById(id);
+            return true;
         }
+        return false; // курс не найден
     }
+
 }

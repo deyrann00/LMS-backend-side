@@ -1,5 +1,6 @@
 package com.example.lms.service;
 
+import com.example.lms.model.Course;
 import com.example.lms.model.Teacher;
 import com.example.lms.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,11 @@ public class TeacherService {
 
     public Optional<Teacher> getTeacherById(Long id) {
         return teacherRepository.findById(id);  // Find teacher by ID
+    }
+
+    // Fetch teachers assigned to a course
+    public List<Teacher> getTeachersByCourse(Course course) {
+        return teacherRepository.findByTeachingCourses(course);  // Make sure you have the correct relationship in your TeacherRepository
     }
 }
 

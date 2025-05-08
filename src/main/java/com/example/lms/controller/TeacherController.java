@@ -1,9 +1,12 @@
 package com.example.lms.controller;
 
+import com.example.lms.dto.TeacherRequest;
 import com.example.lms.model.Course;
 import com.example.lms.model.Teacher;
+import com.example.lms.model.User;
 import com.example.lms.repository.CourseRepository;
 import com.example.lms.repository.TeacherRepository;
+import com.example.lms.repository.UserRepository;
 import com.example.lms.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,9 @@ public class TeacherController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public List<Teacher> getAllTeachers() {

@@ -1,6 +1,7 @@
 package com.example.lms.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -19,9 +20,9 @@ public class Course {
     private String title;
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "teacher_id")
-    @JsonBackReference("teacher-course")
+    @JsonIgnoreProperties({"teachingCourses"})
     private Teacher teacher;
 
     @ManyToMany(mappedBy = "enrolledCourses")
