@@ -55,11 +55,42 @@ public class CourseModuleController {
 
     // ✅ Add new module to course
     @PostMapping("/courses/{courseId}/modules")
-    public ResponseEntity<CourseModule> addModule(@PathVariable Long courseId, @RequestBody CourseModule courseModule) {
+    public ResponseEntity<CourseModule> addModule(
+            @PathVariable Long courseId,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "videoUrl", required = false) String videoUrl,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
-        courseModule.setCourse(course);
-        return ResponseEntity.ok(courseModuleRepository.save(courseModule));
+
+        CourseModule module = new CourseModule();
+        module.setTitle(title);
+        module.setContent(content);
+        module.setVideoUrl(videoUrl);
+        module.setCourse(course);
+
+        // Save uploaded file if present
+        if (file != null && !file.isEmpty()) {
+            try {
+                String uploadDir = "uploads/modules/";
+                String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+                File uploadFolder = new File(uploadDir);
+                if (!uploadFolder.exists()) uploadFolder.mkdirs();
+
+                String savedPath = uploadDir + System.currentTimeMillis() + "_" + originalFilename;
+                File dest = new File(savedPath);
+                file.transferTo(dest);
+
+                module.setFilePath("/" + savedPath); // Store relative path for frontend use
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        CourseModule saved = courseModuleRepository.save(module);
+        return ResponseEntity.ok(saved);
     }
 
     // ✅ Update existing module

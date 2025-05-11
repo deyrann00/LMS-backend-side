@@ -241,4 +241,12 @@ public class UserController {
         user.setBanned(true);  // Mark the user as banned
         userRepository.save(user);  // Save the updated user
     }
+
+    @PutMapping("/{userId}/unban")
+    public void unbanUser(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setBanned(false); // Unban the user
+        userRepository.save(user);
+    }
 }
