@@ -1,5 +1,6 @@
 package com.example.lms.controller;
 
+import com.example.lms.dto.CourseModuleRequest;
 import com.example.lms.model.Course;
 import com.example.lms.model.CourseModule;
 import com.example.lms.repository.CourseRepository;
@@ -36,7 +37,6 @@ public class CourseModuleController {
     @Autowired
     private CourseRepository courseRepository;
 
-    // File upload path (you can adjust the directory as needed)
     private static final String UPLOAD_DIR = "uploads/";
 
     // Create directory if it doesn't exist
@@ -47,13 +47,11 @@ public class CourseModuleController {
         }
     }
 
-    // ✅ Get modules by course ID
     @GetMapping("/courses/{courseId}/modules")
     public ResponseEntity<List<CourseModule>> getModules(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseModuleRepository.findByCourseId(courseId));
     }
 
-    // ✅ Add new module to course
     @PostMapping("/courses/{courseId}/modules")
     public ResponseEntity<CourseModule> addModule(
             @PathVariable Long courseId,
@@ -93,14 +91,14 @@ public class CourseModuleController {
         return ResponseEntity.ok(saved);
     }
 
-    // ✅ Update existing module
     @PutMapping("/modules/{id}")
-    public ResponseEntity<CourseModule> updateModule(@PathVariable Long id, @RequestBody CourseModule dto) {
+    public ResponseEntity<CourseModule> updateModule(@PathVariable Long id, @RequestBody CourseModuleRequest dto) {
         return courseModuleRepository.findById(id)
                 .map(existing -> {
                     existing.setTitle(dto.getTitle());
                     existing.setContent(dto.getContent());
-                    existing.setVideoUrl(dto.getVideoUrl()); // Update video URL
+                    existing.setVideoUrl(dto.getVideoUrl());
+                    existing.setFilePath(dto.getFilePath());
                     return ResponseEntity.ok(courseModuleRepository.save(existing));
                 })
                 .orElse(ResponseEntity.notFound().build());

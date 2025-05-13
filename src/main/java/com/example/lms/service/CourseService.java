@@ -132,10 +132,8 @@ public class CourseService {
                 existingCourse.getStudents().clear();  // очистка с другой стороны
             }
 
-            // Сохраняем обновлённые связи
             courseRepository.save(existingCourse);
 
-            // Теперь можно безопасно удалить курс
             courseRepository.deleteById(id);
             return true;
         }
