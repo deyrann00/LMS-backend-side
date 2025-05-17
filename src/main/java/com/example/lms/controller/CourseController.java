@@ -10,8 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.lms.dto.CourseRequest;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -54,13 +60,14 @@ public class CourseController {
         Course course = new Course();
         course.setTitle(courseRequest.getTitle());
         course.setDescription(courseRequest.getDescription());
+        course.setImageUrl(courseRequest.getImageUrl());  // Set image URL
 
         if (courseRequest.getTeacherId() != null) {
             Optional<Teacher> optionalTeacher = teacherRepository.findById(courseRequest.getTeacherId());
             if (optionalTeacher.isPresent()) {
                 course.setTeacher(optionalTeacher.get());
             } else {
-                return ResponseEntity.badRequest().build(); // Or custom error response
+                return ResponseEntity.badRequest().build();
             }
         }
 
@@ -79,12 +86,83 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course updatedCourse) {
-        Course updated = courseService.updateCourse(id, updatedCourse);
-        if (updated != null) {
-            return ResponseEntity.ok(updated);
-        } else {
+    public ResponseEntity<Course> updateCourse(
+            @PathVariable Long id,
+            @RequestBody CourseRequest courseRequest) {
+
+        Optional<Course> optionalCourse = courseRepository.findById(id);
+        if (optionalCourse.isEmpty()) {
             return ResponseEntity.notFound().build();
+        }
+
+        Course course = optionalCourse.get();
+
+        // Update fields
+        course.setTitle(courseRequest.getTitle());
+        course.setDescription(courseRequest.getDescription());
+
+        // Update image URL if provided
+        if (courseRequest.getImageUrl() != null) {
+            course.setImageUrl(courseRequest.getImageUrl());
+        }
+
+        // Update teacher if provided
+        if (courseRequest.getTeacherId() != null) {
+            Optional<Teacher> optionalTeacher = teacherRepository.findById(courseRequest.getTeacherId());
+            if (optionalTeacher.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            course.setTeacher(optionalTeacher.get());
+        }
+
+        Course savedCourse = courseRepository.save(course);
+        return ResponseEntity.ok(savedCourse);
+    }
+
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<Map<String, String>> uploadCourseImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+
+        try {
+            Path uploadDir = Paths.get(System.getProperty("user.dir"), "uploads", "course-images");
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+
+            int i = originalFilename.lastIndexOf('.');
+            if (i > 0) {
+                extension = originalFilename.substring(i);
+            }
+
+            String filename = "course-" + id + extension;
+            Path filePath = uploadDir.resolve(filename);
+
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            System.out.println("File saved to: " + filePath.toAbsolutePath());
+
+            String imageUrl = "/course-images/" + filename;
+
+            Optional<Course> courseOpt = courseRepository.findById(id);
+            if (courseOpt.isPresent()) {
+                Course course = courseOpt.get();
+                course.setImageUrl(imageUrl);
+                courseRepository.save(course);
+            }
+
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Could not save file"));
         }
     }
 
@@ -95,7 +173,7 @@ public class CourseController {
             return ResponseEntity.notFound().build();
         }
 
-        List<Teacher> teachers = teacherService.getTeachersByCourse(course);  // Assuming you have this method in your TeacherService
+        List<Teacher> teachers = teacherService.getTeachersByCourse(course);
         return ResponseEntity.ok(teachers);
     }
 }

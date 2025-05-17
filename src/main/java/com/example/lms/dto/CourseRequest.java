@@ -1,9 +1,10 @@
 package com.example.lms.dto;
 
 public class CourseRequest {
-    public String title;
-    public String description;
-    public Long teacherId;
+    private String title;
+    private String description;
+    private Long teacherId;
+    private String imageUrl;  // New field for course image URL
 
     public String getTitle() {
         return title;
@@ -27,5 +28,13 @@ public class CourseRequest {
 
     public void setTeacherId(Long teacherId) {
         this.teacherId = teacherId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

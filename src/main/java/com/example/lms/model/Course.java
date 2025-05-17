@@ -33,6 +33,12 @@ public class Course {
     @JsonManagedReference
     private List<CourseModule> courseModules = new ArrayList<>();
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
